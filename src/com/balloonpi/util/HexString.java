@@ -1,6 +1,19 @@
 package com.balloonpi.util;
 
+/**
+ * Get hex String.
+ * 
+ * @author shintaro
+ * @version 1.0
+ * 
+ */
 public class HexString {
+	/**
+	 * Get hex string from input string.
+	 * 
+	 * @param in
+	 * @return Hex String
+	 */
 	public String toHexString(String in) {
 		StringBuffer out = new StringBuffer();
 
@@ -14,6 +27,12 @@ public class HexString {
 		return out.toString();
 	}
 
+	/**
+	 * Get hex string from Byte list.
+	 * 
+	 * @param in
+	 * @return Hex String
+	 */
 	public String toHexString(Byte[] in) {
 		StringBuffer out = new StringBuffer();
 		for (int i = 0; i < in.length; i++) {
@@ -25,6 +44,12 @@ public class HexString {
 		return out.toString();
 	}
 
+	/**
+	 * Get hex String from Byte.
+	 * 
+	 * @param in
+	 * @return Hex String
+	 */
 	public String toHexString(byte in) {
 		StringBuffer out = new StringBuffer();
 
