@@ -1,13 +1,9 @@
 package com.balloonpi.xbeed;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,6 +11,12 @@ import org.apache.logging.log4j.Logger;
 
 import com.balloonpi.util.HexString;
 
+/**
+ * XbeedTxServerThread receive data from queue and send it to socket.
+ * 
+ * @author shintaro
+ * @version 1.0
+ */
 public class XbeedRxServerThread implements Runnable {
 	private static Logger logger = LogManager.getLogger();
 
@@ -24,10 +26,18 @@ public class XbeedRxServerThread implements Runnable {
 
 	HexString hs = new HexString();
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param socket
+	 */
 	public XbeedRxServerThread(Socket socket) {
 		this.socket = socket;
 	}
 
+	/**
+	 * Start to read queue data. When receive data, send it to socket.
+	 */
 	public void run() {
 		UUID id = UUID.randomUUID();
 		Byte[] rx_data;
@@ -50,21 +60,21 @@ public class XbeedRxServerThread implements Runnable {
 					if (rx_data != null) {
 						logger.debug("Get frame_data from RX queue. {}",
 								hs.toHexString(rx_data));
-						// ヘッダ
+						// header
 						os.write(0xFF);
-						// データ長
+						// data length
 						int length = rx_data.length;
 						os.write(0xFF & (length >> 8));
 						os.write(0xFF & (length));
-						
+
 						for (byte tmp : rx_data) {
 							os.write(tmp);
 						}
-						// フッタ
+						// footer
 						os.write(0xFF);
 					}
 				}
-				// 相手からsocketをクローズされている場合、ループから抜け処理を終了する。
+				// If closed socket by client, stop this thread.
 				try {
 					if (is.read() == -1) {
 						break;
@@ -82,6 +92,9 @@ public class XbeedRxServerThread implements Runnable {
 		XbeedQueue.delete(id.toString());
 	}
 
+	/**
+	 * Stop this thread.
+	 */
 	public void stop() {
 		close_flag = true;
 	}

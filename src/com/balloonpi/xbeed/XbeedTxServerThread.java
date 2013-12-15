@@ -1,18 +1,21 @@
 package com.balloonpi.xbeed;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.balloonpi.util.HexString;
 
+/**
+ * XbeedTxServerThread receive data from socket, parse and put it to queue.
+ * 
+ * @author shintaro
+ * @version 1.0
+ */
 public class XbeedTxServerThread implements Runnable {
 	private static Logger logger = LogManager.getLogger();
 
@@ -27,10 +30,19 @@ public class XbeedTxServerThread implements Runnable {
 	int length = 0;
 	int position = 0;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param socket
+	 */
 	public XbeedTxServerThread(Socket socket) {
 		this.socket = socket;
 	}
 
+	/**
+	 * Start to read socket data and parse. When receive one meaningful data,
+	 * put it to queue.
+	 */
 	public void run() {
 		logger.debug("Start TX server thread.");
 
@@ -72,6 +84,12 @@ public class XbeedTxServerThread implements Runnable {
 		}
 	}
 
+	/**
+	 * parse receive data from TCP socket.
+	 * 
+	 * @param rcv_data_tmp
+	 * @return if parse succeed and be able to get data, return true.
+	 */
 	private boolean parse(byte rcv_data_tmp) {
 
 		logger.debug("Receive from client. 0x{}",
@@ -100,6 +118,9 @@ public class XbeedTxServerThread implements Runnable {
 		return false;
 	}
 
+	/**
+	 * Stop this thread.
+	 */
 	public void stop() {
 		close_flag = true;
 	}

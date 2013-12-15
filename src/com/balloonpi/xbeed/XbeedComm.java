@@ -9,13 +9,17 @@ import gnu.io.UnsupportedCommOperationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.TooManyListenersException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.balloonpi.util.HexString;
 
+/**
+ * XbeedComm is class for serial communication.
+ * @author shintaro
+ * @version 1.0
+ */
 public class XbeedComm {
 	private static Logger logger = LogManager.getLogger();
 
@@ -35,7 +39,11 @@ public class XbeedComm {
 	int bit_rate;
 
 	/**
-	 * コンストラクタ。設定ファイルを読み込み設定を取得する。
+	 * Constructor.
+	 * 
+	 * @param com_port
+	 *            Serial port name.
+	 * @param bit_rate
 	 */
 	public XbeedComm(String com_port, int bit_rate) {
 
@@ -44,8 +52,12 @@ public class XbeedComm {
 
 	}
 
+	/**
+	 * Open serial port and start up TX/RX threads.
+	 */
 	public void start() {
 		try {
+			// Configure serial port and connect.
 			logger.debug("Open serial port(COM:{})", com_port);
 			CommPortIdentifier portId = CommPortIdentifier
 					.getPortIdentifier(com_port);
@@ -58,16 +70,16 @@ public class XbeedComm {
 
 			in = port.getInputStream();
 			out = port.getOutputStream();
-			
-			// タイムアウトを1秒に設定
+
+			// Set timeout to 1 second
 			port.enableReceiveTimeout(1000);
 
-			// 送信用スレッドの作成
+			// Startup TX thread.
 			sw = new SerialWriter(out);
 			sw_thread = new Thread(sw);
 			sw_thread.start();
 
-			// 受信用スレッドの作成
+			// Startup RX thread.
 			sr = new SerialReader(in);
 			sr_thread = new Thread(sr);
 			sr_thread.start();
@@ -86,10 +98,10 @@ public class XbeedComm {
 	}
 
 	/**
-	 * 送受信スレッドを停止させ、ポートをクローズする。
+	 * Stop all threads for serial communication.
 	 */
 	public void stop() {
-		// 送信用スレッドを停止させる
+		// Stop TX thread.
 		logger.debug("Stop Serial Writer.");
 		if (sw != null) {
 			sw.stop();
@@ -103,7 +115,7 @@ public class XbeedComm {
 			}
 		}
 
-		// 受信用スレッドの削除
+		// Stop RX thread
 		logger.debug("Stop Serial Reader.");
 		if (sr != null) {
 			sr.stop();
@@ -117,7 +129,7 @@ public class XbeedComm {
 			}
 		}
 
-		// ポートを閉じる
+		// Close serial port.
 		try {
 			if (in != null) {
 				in.close();

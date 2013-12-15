@@ -8,6 +8,14 @@ import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Xbeed main process. This process loads the property file(xbeed.properties)
+ * ,connects to serial port and start up some threads for TCP connection.
+ * 
+ * @author shintaro
+ * @version 1.0
+ * 
+ */
 public class Xbeed {
 	private static Logger logger = LogManager.getLogger();
 
@@ -15,12 +23,12 @@ public class Xbeed {
 		Properties prop = new Properties();
 
 		try {
-			// プロパティファイルを開く
+			// open property file.
 			InputStream inputStream = XbeedComm.class
 					.getResourceAsStream("/xbeed.properties");
 			prop.load(inputStream);
 
-			// 設定値の取得
+			// get property values.
 			String com_port = prop.getProperty("xbeed.com_port");
 			int bit_rate = Integer.parseInt(prop.getProperty("xbeed.bit_rate"));
 			int tx_server_port = Integer.parseInt(prop
@@ -29,30 +37,30 @@ public class Xbeed {
 					.getProperty("xbeed.rx_server_port"));
 			String stop_file_name = prop.getProperty("xbeed.stop_file_name");
 
-			// シリアル通信用
+			// start serial communiction thread.
 			logger.debug("Start XbeedComm.");
 			XbeedComm comm = new XbeedComm(com_port, bit_rate);
 			comm.start();
 
-			// ソケット用送信サーバの起動
+			// start socket server thread for TX.
 			logger.debug("Start TX Server.");
 			XbeedTxServer tx_server = new XbeedTxServer(tx_server_port);
 			Thread txThread = new Thread(tx_server);
 			txThread.start();
 
-			// ソケット用受信サーバの起動
+			// start socket server thread for RX.
 			logger.debug("Start RX Server.");
 			XbeedRxServer rx_server = new XbeedRxServer(rx_server_port);
 			Thread rxThread = new Thread(rx_server);
 			rxThread.start();
 
-			// 停止ファイルが置かれるまで待機
+			// wait when stop file exists.
 			File file = new File(stop_file_name);
 			while (file.exists() == false) {
 				Thread.sleep(1000);
 			}
 
-			// 終了処理
+			// exit process.
 			logger.debug("Stoping process.");
 			comm.stop();
 			tx_server.stop();

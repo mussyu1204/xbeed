@@ -1,8 +1,5 @@
 package com.balloonpi.xbeed;
 
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -13,9 +10,10 @@ import org.apache.logging.log4j.Logger;
 import com.balloonpi.util.HexString;
 
 /**
- * シリアルデータ受信用のイベントりリスナ実装クラス。 受信データを解析し、フレームデータをキューに詰める。
+ * SerialReader receive data from serial port and set data to XbeedQueue.
  * 
  * @author shintaro
+ * @version 1.0
  * 
  */
 public class SerialReader implements Runnable {
@@ -34,17 +32,17 @@ public class SerialReader implements Runnable {
 	HexString hs = new HexString();
 
 	/**
-	 * コンストラクタ。
+	 * Constructor.
 	 * 
 	 * @param in
-	 *            InputStream
+	 *            InputStream of serial port.
 	 */
 	public SerialReader(InputStream in) {
 		this.in = in;
 	}
 
 	/**
-	 * シリアルポートの受信用リスナー。
+	 * Start to receive data from serial port and set data to queue.
 	 */
 	@Override
 	public void run() {
@@ -69,30 +67,27 @@ public class SerialReader implements Runnable {
 	}
 
 	/**
-	 * xbee受信データのスタートフラグ、メッセージ長、チェックサムの解析を行う。
+	 * Parse serial data from xbee.
 	 * 
 	 * @param rcv_data
+	 *            The byte data from serial port.
 	 */
 	private void parseXbeeData(byte rcv_data) {
 		logger.debug("Receive data. 0x{}", Integer.toHexString(0xFF & rcv_data));
 		if (cur_position == 0 && rcv_data == XBEE_START_DELIMITER) {
 			cur_position = 1;
-		}
-		else if (cur_position == 1) {
+		} else if (cur_position == 1) {
 			length = rcv_data << 8;
 			cur_position = 2;
-		}
-		else if (cur_position == 2) {
+		} else if (cur_position == 2) {
 			length |= rcv_data;
 			cur_position = 3;
 			logger.debug("Length is 0x{}", Integer.toHexString(length & 0xFFFF));
-		}
-		else if (cur_position >= 3 && cur_position < (length + 3)) {
+		} else if (cur_position >= 3 && cur_position < (length + 3)) {
 			frame_data.add(rcv_data);
 			check_sum += rcv_data;
-			cur_position ++;
-		}
-		else if (cur_position == (length + 3)) {
+			cur_position++;
+		} else if (cur_position == (length + 3)) {
 			check_sum = (byte) (0xFF - check_sum);
 			if (check_sum == rcv_data) {
 				logger.debug("Set frame data to RX queue. {}",
@@ -109,7 +104,7 @@ public class SerialReader implements Runnable {
 	}
 
 	/**
-	 * スレッドを停止させる。
+	 * Stop this thread.
 	 */
 	public void stop() {
 		stop_flag = true;

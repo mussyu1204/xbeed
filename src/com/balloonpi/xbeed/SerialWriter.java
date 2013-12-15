@@ -10,6 +10,13 @@ import org.apache.logging.log4j.Logger;
 
 import com.balloonpi.util.HexString;
 
+/**
+ * SerialWriter get TX data from XbeedQueue and send to serial port.
+ * When send serial data, SerialWriter add start byte, data length and checksum.
+ * 
+ * @author shintaro
+ * @version 1.0
+ */
 public class SerialWriter implements Runnable {
 	private static Logger logger = LogManager.getLogger();
 	private byte XBEE_START_DELIMITER = 0x7E;
@@ -19,10 +26,17 @@ public class SerialWriter implements Runnable {
 
 	HexString hs = new HexString();
 
+	/**
+	 * Constructor
+	 * @param out OutputStream of serial port.
+	 */
 	public SerialWriter(OutputStream out) {
 		this.out = out;
 	}
 
+	/**
+	 * Start queue polling thread.
+	 */
 	public void run() {
 		logger.debug("Start Serial Writer.");
 		ArrayList<Byte> tx_data = new ArrayList<Byte>();
@@ -50,6 +64,7 @@ public class SerialWriter implements Runnable {
 						check_sum += tmp;
 					}
 
+					// set check sum
 					check_sum = (byte) (0xFF - check_sum);
 					tx_data.add(check_sum);
 
@@ -60,7 +75,8 @@ public class SerialWriter implements Runnable {
 					while (it.hasNext()) {
 						this.out.write(it.next());
 					}
-					// 後処理
+					
+					// clear data.
 					tx_data.clear();
 					check_sum = 0;
 				}
@@ -75,7 +91,7 @@ public class SerialWriter implements Runnable {
 	}
 
 	/**
-	 * スレッドを停止させる。
+	 * Stop thread.
 	 */
 	public void stop() {
 		stop_flag = true;

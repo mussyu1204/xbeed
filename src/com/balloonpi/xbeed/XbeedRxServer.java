@@ -10,6 +10,13 @@ import java.util.Iterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * XbeedRxServer is TCP socket listener. When start connection, XbeedRxServer
+ * makes new thread and delegate socket.
+ * 
+ * @author shintaro
+ * @version 1.0
+ */
 public class XbeedRxServer implements Runnable {
 	private static Logger logger = LogManager.getLogger();
 
@@ -18,10 +25,19 @@ public class XbeedRxServer implements Runnable {
 	boolean close_flag = false;
 	int port;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param port
+	 */
 	public XbeedRxServer(int port) {
 		this.port = port;
 	}
 
+	/**
+	 * Start to listen socket. When new connection starts, make thread for new
+	 * connection.
+	 */
 	public void run() {
 		try {
 			logger.debug("Start RX server listener.");
@@ -46,7 +62,7 @@ public class XbeedRxServer implements Runnable {
 			logger.debug("Stop RX server listener.");
 			serverSocket.close();
 
-			// 接続しているソケットのスレッドをすべて停止させる。
+			// Stop every thread.
 			Iterator<XbeedRxServerThread> it = serverThreads.iterator();
 			while (it.hasNext()) {
 				it.next().stop();
@@ -57,6 +73,9 @@ public class XbeedRxServer implements Runnable {
 		}
 	}
 
+	/**
+	 * Top this thread.
+	 */
 	public void stop() {
 		close_flag = true;
 	}
